@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>镜遇粤彩·衣秒入戏｜粤剧互动小游戏</title>
+<style>
+:root {
+  --red: #9B1C1C;
+  --ok: #2E7D32;
+  --err: #D32F2F;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "微软雅黑", sans-serif;
+  background: #F2E4D1;
+  color: #333;
+  padding: 20px 10px;
+}
+.stage-top {
+  background: #9B1C1C;
+  color: #fff;
+  text-align: center;
+  padding: 20px 10px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 32px;
+  letter-spacing: 3px;
+}
+.subtitle {
+  font-size: 16px;
+  color: #FFD99D;
+  margin-top: 8px;
+}
+.category-tabs {
+  max-width: 600px;
+  margin: 0 auto 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tab-btn {
+  padding: 12px 24px;
+  background: #9B1C1C;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #C72027;
+}
+.score-bar {
+  max-width: 600px;
+  margin: 0 auto 15px;
+  background: #fff;
+  border: 2px solid #9B1C1C;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+.score {
+  color: #9B1C1C;
+  font-weight: bold;
+}
+.game-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  border: 2px solid #9B1C1C;
+  border-radius: 16px;
+  padding: 25px;
+}
+.game-title {
+  font-size: 22px;
+  color: #9B1C1C;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+.question {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border: 2px solid #9B1C1C;
+  background: #fff;
+  color: #9B1C1C;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.btn:hover {
+  background: #9B1C1C;
+  color: #fff;
+}
+.btn.ok {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: #fff;
+}
+.btn.err {
+  border-color: var(--err);
+  background: var(--err);
+  color: #fff;
+}
+.answer-box {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  display: none;
+  line-height: 1.6;
+}
+.answer-box.ok {
+  background: #e6f5e6;
+  border: 1px solid var(--ok);
+  color: #1B5E20;
+}
+.answer-box.err {
+  background: #ffe9e9;
+  border: 1px solid var(--err);
+  color: #B71C1C;
+}
+.next-btn {
+  margin-top: 20px;
+  background: #9B1C1C;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+}
+.next-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.poem-input {
+  width: 60px;
+  text-align: center;
+  border: none;
+  border-bottom: 2px solid #9B1C1C;
+  font-size: 22px;
+  color: #9B1C1C;
+  background: transparent;
+  outline: none;
+  padding: 5px;
+}
+/*新增字数提示样式*/
+.tip-word{
+  color:#9B1C1C;
+  font-size:15px;
+  margin-bottom:8px;
+}
+.submit-fill{
+  width:140px;
+  margin:12px auto 0;
+  background:#9B1C1C;
+  color:#fff;
+}
+</style>
+</head>
+<body>
+
+<div class="stage-top">
+  <h1>镜遇粤彩·衣秒入戏</h1>
+  <p class="subtitle">粤剧互动小游戏｜历史·行当·服饰·短视频运镜</p>
+</div>
+
+<div class="category-tabs">
+  <button class="tab-btn active" onclick="switchGame(0)">粤剧历史</button>
+  <button class="tab-btn" onclick="switchGame(1)">五大行当</button>
+  <button class="tab-btn" onclick="switchGame(2)">粤剧服饰</button>
+  <button class="tab-btn" onclick="switchGame(3)">短视频运镜</button>
+</div>
+
+<div class="score-bar">
+  <span>当前进度：<span id="progress">1/3</span></span>
+  <span>总分：<span id="totalScore">100</span> 分｜已得：<span class="score" id="score">0</span> 分</span>
+</div>
+
+<div class="game-card" id="gameBox">
+  <h2 class="game-title" id="gameTitle">游戏加载中...</h2>
+  <div id="qBox" class="question"></div>
+  <div id="ansBox" class="answer-box"></div>
+  <button class="btn next-btn" id="nextBtn" disabled>下一题</button>
+</div>
+
+<script>
+// 打乱题目
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+const games = [
+  {
+    category: "粤剧历史",
+    list: [
+      { q: "粤剧以哪种语言为唱念基础？", opts: ["A. 普通话", "B. 粤语", "C. 客家话", "D. 潮汕话"], ans: 1, exp: "粤剧以粤语（广府话）为唱念语言。" },
+      { q: "粤剧正式形成于哪个时期？", opts: ["A. 唐宋", "B. 明中叶至清中期", "C. 清末民初", "D. 新中国"], ans: 1, exp: "明中叶至清代中期，广腔班出现标志粤剧正式成型。" },
+      { q: "粤剧在哪一年入选国家级非遗？", opts: ["A. 2006", "B. 2009", "C. 2010", "D. 2012"], ans: 0, exp: "2006年5月20日，粤剧列入第一批国家级非遗。" },
+      { q: "粤剧在哪一年入选世界级非遗？", opts: ["A. 2006", "B. 2009", "C. 2015", "D. 2020"], ans: 1, exp: "2009年9月30日，粤剧入选世界非遗代表作名录。" },
+      { q: "被誉为‘南国红豆’的粤剧宗师是？", opts: ["A. 薛觉先", "B. 红线女", "C. 马师曾", "D. 芳艳芬"], ans: 1, exp: "红线女被誉为‘南国红豆’，创立红腔。" }
+    ]
+  },
+  {
+    category: "五大行当",
+    list: [
+      { type: "fill", q: "粤剧五大行当：生、旦、净、__、丑", ans: "末", wordNum:1, exp: "粤剧五大行当：生、旦、净、末、丑。" },
+      { type: "fill", q: "多扮演正面青年男性、文武双全：__", ans: "生", wordNum:1, exp: "生行多为男性正面主角，能文能武。" },
+      { type: "fill", q: "粤剧第一女主角、端庄高贵：__", ans: "旦", wordNum:1, exp: "正印花旦是第一女主角，高贵端庄。" },
+      { type: "fill", q: "画大花脸、性格鲜明：__", ans: "净", wordNum:1, exp: "净角即花脸，脸谱鲜明、性格刚烈。" },
+      { type: "fill", q: "鼻梁白豆腐块、滑稽搞笑：__", ans: "丑", wordNum:1, exp: "丑生鼻梁画白豆腐块，负责搞笑。" },
+      { type: "fill", q: "专演武戏、背插靠旗：__", ans: "武", wordNum:1, exp: "武生专演武将，背插靠旗，威风凛凛。" }
+    ]
+  },
+  {
+    category: "粤剧服饰",
+    list: [
+      { q: "文武生最具代表性的服饰是？", opts: ["A. 蟒袍", "B. 衫裙", "C. 短打", "D. 大靠"], ans: 0, exp: "文武生穿蟒袍，华贵正气，主角气场。" },
+      { q: "小生（书生）常穿的服饰是？", opts: ["A. 褶子", "B. 女蟒", "C. 大靠", "D. 丑角衣"], ans: 0, exp: "小生穿褶子，长衫飘逸，书卷气。" },
+      { q: "正印花旦（皇后公主）穿？", opts: ["A. 女蟒", "B. 衫裙", "C. 短袄", "D. 战袄"], ans: 0, exp: "正印花旦穿女蟒、凤冠，华丽高贵。" },
+      { q: "武生（武将）最标志性服饰是？", opts: ["A. 大靠", "B. 蟒袍", "C. 帔", "D. 宫装"], ans: 0, exp: "武生穿大靠，背插靠旗，威风勇猛。" },
+      { q: "丑生（滑稽角色）通常穿？", opts: ["A. 短袖敞衫", "B. 女蟒", "C. 龙袍", "D. 凤冠"], ans: 0, exp: "丑生穿短袖敞衫，滑稽接地气。" },
+      { q: "粤剧服饰核心工艺是？", opts: ["A. 广绣", "B. 苏绣", "C. 湘绣", "D. 蜀绣"], ans: 0, exp: "粤剧服饰以广绣、潮绣为核心工艺。" },
+      { q: "红色戏服通常代表？", opts: ["A. 忠臣高官", "B. 反派", "C. 平民", "D. 滑稽"], ans: 0, exp: "红色代表忠勇、尊贵、高官忠臣。" },
+      { q: "帝王专属的纹样是？", opts: ["A. 龙纹", "B. 兰草", "C. 小花", "D. 蝴蝶"], ans: 0, exp: "龙纹为帝王将相专属，象征权威。" }
+    ]
+  },
+  {
+    category: "短视频运镜",
+    list: [
+      { q: "拍摄粤剧武生大靠，从全身推进到靠旗龙纹刺绣，用哪种运镜？", opts: ["A. 拉镜头", "B. 推镜头", "C. 摇镜头", "D. 跟镜头"], ans: 1, exp: "推镜头：从全景慢慢推向局部特写。" },
+      { q: "拍摄旦角水袖表演，镜头跟随演员并保持居中，适合？", opts: ["A. 移镜头", "B. 摇镜头", "C. 跟镜头", "D. 拉镜头"], ans: 2, exp: "跟镜头：跟随主体移动，主体始终在画面中。" },
+      { q: "从花脸脸谱特写拉远展示全身与背景，应使用？", opts: ["A. 推镜头", "B. 拉镜头", "C. 移镜头", "D. 摇镜头"], ans: 1, exp: "拉镜头：从特写拉远，展示环境与整体。" },
+      { q: "拍摄丑角台步，手机平行横向移动，是？", opts: ["A. 推镜头", "B. 拉镜头", "C. 移镜头", "D. 跟镜头"], ans: 2, exp: "移镜头：机位平行移动，横向扫过画面。" },
+      { q: "拍摄女蟒袍从左到右展示刺绣，最合适？", opts: ["A. 摇镜头", "B. 推镜头", "C. 跟镜头", "D. 移镜头"], ans: 3, exp: "移镜头：平稳左右移动，展示完整纹样。" },
+      { q: "机位固定，从厚底靴向上摇到盔头，是？", opts: ["A. 移镜头", "B. 跟镜头", "C. 摇镜头", "D. 拉镜头"], ans: 2, exp: "摇镜头：机身不动，转动镜头方向。" }
+    ]
+  }
+];
+
+// 固定每题4分，满分100
+const perScore = 4;
+const totalFullScore = 100;
+
+let currentGameIndex = 0, q = 0, score = 0;
+let curGame, curQ;
+
+const gameTitle = document.getElementById("gameTitle");
+const qBox = document.getElementById("qBox");
+const ansBox = document.getElementById("ansBox");
+const nextBtn = document.getElementById("nextBtn");
+const scoreEl = document.getElementById("score");
+const totalScoreEl = document.getElementById("totalScore");
+const progressEl = document.getElementById("progress");
+const tabBtns = document.querySelectorAll(".tab-btn");
+
+nextBtn.innerText = "下一题";
+totalScoreEl.innerText = totalFullScore;
+
+function switchGame(index) {
+  currentGameIndex = index;
+  q = 0;
+  tabBtns.forEach((btn, i) => btn.classList.toggle("active", i === index));
+  loadGame();
+}
+
+function loadGame() {
+  curGame = games[currentGameIndex];
+  if (currentGameIndex === 1) {
+    curGame.list = shuffleArray(curGame.list);
+  }
+  gameTitle.innerText = curGame.category + "挑战";
+  nextBtn.disabled = true;
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (q >= curGame.list.length) {
+    gameTitle.innerText = "? 本分类完成！";
+    qBox.innerHTML = `<p>请选择其他分类继续挑战</p>`;
+    ansBox.style.display = "none";
+    nextBtn.disabled = true;
+    nextBtn.innerText = "已完成";
+    updateProgress();
+    return;
+  }
+  curQ = curGame.list[q];
+  updateProgress();
+  ansBox.style.display = "none";
+  nextBtn.disabled = true;
+  nextBtn.innerText = "下一题";
+
+  if (curQ.type === "fill") {
+    renderSingleFill();
+  } else {
+    renderChoice();
+  }
+}
+
+// 单选题
+function renderChoice() {
+  qBox.innerHTML = `<div class="question">${curQ.q}</div>`;
+  const wrap = document.createElement("div");
+  curQ.opts.forEach((txt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = txt;
+    btn.onclick = () => selectAnswer(i, btn);
+    wrap.appendChild(btn);
+  });
+  qBox.appendChild(wrap);
+}
+
+function selectAnswer(index, btn) {
+  const all = qBox.querySelectorAll(".btn");
+  all.forEach(b => { b.disabled = true; });
+  if (index === curQ.ans) {
+    btn.classList.add("ok");
+    score += perScore;
+    ansBox.className = "answer-box ok";
+    ansBox.innerHTML = "? 正确！+" + perScore + "分<br>" + curQ.exp;
+  } else {
+    btn.classList.add("err");
+    all[curQ.ans].classList.add("ok");
+    ansBox.className = "answer-box err";
+    ansBox.innerHTML = "? 错误<br>正确答案：" + curQ.opts[curQ.ans] + "<br>" + curQ.exp;
+  }
+  ansBox.style.display = "block";
+  nextBtn.disabled = false;
+  updateScore();
+}
+
+// 填空题：新增答案文字+字数提示+提交按钮，取消输入实时判断
+function renderSingleFill() {
+  qBox.innerHTML = `
+    <div class="question">${curQ.q}</div>
+    <div style="text-align:center; margin-top:10px;">
+      <div class="tip-word">温馨提示：本题答案为${curQ.wordNum}个字</div>
+      <span>答案：</span>
+      <input class="poem-input" type="text" maxlength="${curQ.wordNum}" id="fillInput">
+      <button class="btn submit-fill" id="submitFillBtn">提交答案</button>
+    </div>
+  `;
+  const submitBtn = document.getElementById("submitFillBtn");
+  submitBtn.onclick = checkSingleFill;
+}
+
+// 点击提交才判分
+function checkSingleFill() {
+  const input = document.getElementById("fillInput");
+  const val = input.value.trim();
+  if (!val) {
+    alert("请填写答案后再提交！");
+    return;
+  }
+
+  if (val === curQ.ans) {
+    ansBox.className = "answer-box ok";
+    ansBox.innerHTML = "? 正确！+" + perScore + "分<br>" + curQ.exp;
+    score += perScore;
+  } else {
+    ansBox.className = "answer-box err";
+    ansBox.innerHTML = "? 错误<br>正确答案：" + curQ.ans + "<br>" + curQ.exp;
+  }
+  ansBox.style.display = "block";
+  nextBtn.disabled = false;
+  updateScore();
+  //提交后锁定输入和提交按钮
+  input.disabled = true;
+  document.getElementById("submitFillBtn").disabled = true;
+}
+
+// 下一步
+nextBtn.onclick = () => {
+  q++;
+  loadQuestion();
+};
+
+function updateProgress() {
+  progressEl.innerText = `${q + 1}/${curGame.list.length}`;
+}
+
+function updateScore() {
+  scoreEl.innerText = score;
+}
+
+loadGame();
+</script>
+</body>
+</html>
